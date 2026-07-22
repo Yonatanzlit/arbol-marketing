@@ -114,3 +114,7 @@
   .switch a { padding: 8px 13px; font-size: 11px; }
   .s-3d.s-contact { padding-bottom: 96px; }
 }
+
+/* The seed section centres its content vertically. With the scrim card that
+   can push the eyebrow up under the fixed header, so reserve its height. */
+.s-3d.s-seed { padding-top: 130px; }
