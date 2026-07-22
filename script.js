@@ -89,12 +89,20 @@
   /* --------------------------------------------------------------- reveals
      IntersectionObserver rather than scroll math: it does not care which
      direction the container runs, so the reversed layout cannot break it. */
-  var revealables = Array.prototype.slice.call(document.querySelectorAll('[data-reveal]'));
-  var artBlocks = Array.prototype.slice.call(document.querySelectorAll('.art'));
-  var watched = revealables.concat(artBlocks);
+  var watched = Array.prototype.slice.call(document.querySelectorAll('[data-reveal]'));
+  var treeBg = document.querySelector('.tree-bg');
 
   function revealEverything() {
     watched.forEach(function (el) { el.classList.add('in'); });
+    if (treeBg) treeBg.classList.add('drawn');
+  }
+
+  /* The background tree draws itself once, on load — it is not tied to any
+     section, so it must not wait for an intersection that never comes. */
+  if (treeBg) {
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () { treeBg.classList.add('drawn'); });
+    });
   }
 
   if (reduced || motionOff || !('IntersectionObserver' in window)) {
@@ -130,6 +138,8 @@
     ticking = true;
     requestAnimationFrame(function () {
       var p = Math.max(0, Math.min(1, progress()));
+      // drives the background tree's drift — see .tree-bg in styles.css
+      document.documentElement.style.setProperty('--p', p.toFixed(4));
       if (railFill) railFill.style.height = (p * 100).toFixed(1) + '%';
       if (header) header.classList.toggle('stuck', p > 0.02);
       if (hint) hint.style.opacity = p > 0.04 ? '0' : '1';
