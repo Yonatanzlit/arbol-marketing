@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none"
+     stroke-linecap="round" stroke-linejoin="round">
+  <!-- Simplified mark: the full scribble is an unreadable green smudge at 16px.
+       NEW MARK — show Gustavo before launch. -->
+  <path d="M32 30c-9 0-15-5-14-12S26 6 33 7s13 7 12 13-6 10-13 10" stroke="#375B29" stroke-width="3.4"/>
+  <path d="M32 24c-4.5 0-7.5-2.5-7-6s4.5-4.5 8-4 6.5 3.5 6 6.5-3 3.5-6 3.5" stroke="#7CC01F" stroke-width="3"/>
+  <path d="M30.5 30v18M33.5 30v18" stroke="#00690C" stroke-width="2.6"/>
+  <path d="M8 50c7-3 12 3 20 0s17-3 28 0" stroke="#689F1E" stroke-width="3.4"/>
+</svg>

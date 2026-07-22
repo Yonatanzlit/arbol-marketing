@@ -1,0 +1,7 @@
+# QA output — regenerate with tools/shoot.py + tools/gallery.py
+shots/
+REVIEW.html
+_shot.html
+_nojs.html
+
+.DS_Store

@@ -1,0 +1,56 @@
+# ============================================================================
+# Árbol Trade & Marketing — production Apache config
+#
+# NOTE: the HTTPS/www redirect is deliberately NOT in this file. On Argentine
+# shared hosts TLS often terminates at a front-end proxy, so Apache sees
+# %{HTTPS} as "off" even on HTTPS requests and a naive rewrite becomes an
+# infinite, browser-cached 301 loop. Deploy this file first, confirm the site
+# works on both schemes, then add the redirect as its own separate upload
+# guarded by X-Forwarded-Proto. See DEPLOY.md.
+# ============================================================================
+
+# --- Character set ---------------------------------------------------------
+# This host defaults to ISO-8859-1, which renders every Spanish accent as
+# mojibake ("Conocé" -> "ConocÃ©"). This is the single most important line here.
+AddDefaultCharset UTF-8
+AddType "text/html; charset=UTF-8" .html
+AddType "text/css; charset=UTF-8" .css
+AddType "application/javascript; charset=UTF-8" .js
+AddType "image/svg+xml" .svg
+AddType "font/woff2" .woff2
+
+# --- Routing ---------------------------------------------------------------
+DirectoryIndex index.html index.htm index.php
+Options -Indexes
+ErrorDocument 404 /404.html
+
+# Never serve the pre-cutover backup copies
+RedirectMatch 404 ^/_backup_
+
+# --- Compression -----------------------------------------------------------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml \
+    application/javascript application/json image/svg+xml
+</IfModule>
+
+# --- Caching ---------------------------------------------------------------
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType image/jpeg "access plus 1 year"
+  ExpiresByType image/svg+xml "access plus 1 year"
+  ExpiresByType font/woff2 "access plus 1 year"
+  ExpiresByType text/html "access plus 0 seconds"
+</IfModule>
+
+<IfModule mod_headers.c>
+  <FilesMatch "\.(css|js|jpg|jpeg|png|svg|woff2)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+  Header set X-Content-Type-Options "nosniff"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>

@@ -1,0 +1,397 @@
+/* =========================================================================
+   Árbol Trade & Marketing — www.arbolmarketing.com
+   Plain CSS. No build step. What you edit is what ships.
+
+   CONTRAST RULES — do not break these:
+     --leaf (#7CC01F) is 2.23:1 on white. NEVER text, NEVER a link, NEVER a
+     focus ring. Decorative strokes only.
+     --mid  (#689F1E) is 3.20:1 on white. Decorative only, at any size.
+     Buttons, links and focus rings use --brand (#00690C, 6.94:1) or darker.
+   ========================================================================= */
+
+@font-face {
+  font-family: 'Bodoni Moda';
+  font-style: normal;
+  font-weight: 500 700;
+  font-display: swap;
+  src: url(assets/fonts/bodonimoda-var.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Jost';
+  font-style: normal;
+  font-weight: 300 500;
+  font-display: swap;
+  src: url(assets/fonts/jost-var.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  --white: #ffffff;
+  --mist: #f2f7ef;
+  --border: #dce7d8;
+  --ink: #14201a;
+  --ink-2: #4a5a45;
+  --root: #0b4a12;
+  --brand: #00690c;
+  --brand-hov: #00520a;
+  --canopy: #375b29;
+  --mid: #689f1e;
+  --leaf: #7cc01f;
+
+  --serif: 'Bodoni Moda', 'Didot', 'Times New Roman', serif;
+  --sans: 'Jost', 'Futura', 'Century Gothic', system-ui, -apple-system, sans-serif;
+
+  --wrap: 1120px;
+  --pad: clamp(20px, 5vw, 64px);
+  --sect-y: clamp(72px, 12vh, 132px);
+
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --dur: 0.85s;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--white);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-weight: 400;
+  font-size: 17px;
+  line-height: 1.7;          /* Spanish runs long. Not optional. */
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;          /* the scroller below owns all scrolling */
+}
+
+img { max-width: 100%; height: auto; display: block; }
+
+::selection { background: var(--leaf); color: var(--ink); }
+
+a { color: var(--brand); }
+
+:focus-visible {
+  outline: 3px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+.skip {
+  position: absolute;
+  left: 12px; top: -60px;
+  z-index: 100;
+  background: var(--brand); color: #fff;
+  padding: 10px 18px; border-radius: 999px;
+  font-size: 15px; text-decoration: none;
+  transition: top 0.2s;
+}
+.skip:focus { top: 12px; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* ---------------------------------------------------------------- header */
+.hdr {
+  position: fixed; inset: 0 0 auto 0; z-index: 50;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px;
+  padding: 14px var(--pad);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: saturate(1.4) blur(10px);
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.3s, background 0.3s;
+}
+.hdr.stuck { border-bottom-color: var(--border); }
+/* The client's lockups are JPGs on a white background, so their "white" is
+   never exactly #FFFFFF and shows as a faint rectangle against the page.
+   multiply drops those near-white pixels into the background cleanly.
+   Only safe because every surface behind a logo here is white or mist. */
+.hdr__logo img, .card-logo img, .e404 img {
+  /* brightness() lifts the near-white to pure white so the rectangle vanishes;
+     multiply then blends what's left. The green line art is dark enough that
+     a 6% lift is invisible on it. Remove both once a real vector logo lands. */
+  filter: brightness(1.06);
+  mix-blend-mode: multiply;
+}
+.hdr__logo img { width: clamp(132px, 17vw, 172px); }
+.hdr__cta { flex: 0 0 auto; }
+@media (max-width: 640px) { .hdr .btn { display: none; } }
+
+/* ---------------------------------------------------------------- scroller
+   THE CORE MECHANIC.
+   flex-direction: column-reverse stacks the sections bottom-to-top visually
+   while leaving them in narrative order in the HTML. The browser parks the
+   initial scroll position at the flow's start edge — which is the visual
+   BOTTOM — so the page opens at the seed, underground, with no JavaScript.
+   Scrolling UP moves the visitor forward: semilla → raíces → tronco → copa.
+   Because the DOM is never reordered, reading order, tab order and
+   screen-reader order all still match. No scroll-jacking anywhere. */
+.scroll {
+  height: 100svh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column-reverse;
+  overscroll-behavior-y: contain;
+  scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: reduce) { .scroll { scroll-behavior: auto; } }
+
+.sect {
+  flex: 0 0 auto;
+  position: relative;
+  width: 100%;
+  padding: var(--sect-y) var(--pad);
+}
+.wrap { max-width: var(--wrap); margin: 0 auto; position: relative; z-index: 2; }
+.narrow { max-width: 68ch; }
+
+/* ---------------------------------------------------------------- type */
+.eyebrow {
+  font-family: var(--sans); font-weight: 500;
+  font-size: 13px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--canopy);
+  margin: 0 0 18px;
+  display: flex; align-items: center; gap: 10px;
+}
+.eyebrow::before {
+  content: ''; width: 28px; height: 2px; background: var(--leaf);
+  border-radius: 2px; flex: 0 0 auto;
+}
+
+h1, h2 { font-family: var(--serif); font-weight: 600; margin: 0 0 24px; letter-spacing: -0.01em; }
+h1 { font-size: clamp(38px, 5.6vw, 64px); line-height: 1.08; }
+h2 { font-size: clamp(30px, 4vw, 44px); line-height: 1.15; }
+h3 { font-family: var(--sans); font-weight: 500; font-size: clamp(20px, 2vw, 22px); line-height: 1.3; margin: 0 0 8px; }
+
+p { margin: 0 0 20px; max-width: 68ch; }
+.lead { font-weight: 300; font-size: clamp(18px, 2.2vw, 20px); line-height: 1.65; }
+.muted { color: var(--ink-2); }
+
+/* ---------------------------------------------------------------- buttons */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  min-height: 48px; padding: 13px 26px;
+  font-family: var(--sans); font-weight: 500; font-size: 15px;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  border-radius: 999px; text-decoration: none;
+  border: 1.5px solid var(--brand);
+  transition: background 0.22s, color 0.22s, transform 0.22s, box-shadow 0.22s;
+}
+.btn--primary { background: var(--brand); color: #fff; }
+.btn--primary:hover { background: var(--brand-hov); border-color: var(--brand-hov); transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0, 105, 12, 0.22); }
+.btn--ghost { background: transparent; color: var(--brand); }
+.btn--ghost:hover { background: var(--mist); transform: translateY(-2px); }
+.btns { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 32px; }
+
+/* ---------------------------------------------------------------- tree art */
+.art { position: absolute; z-index: 1; pointer-events: none; }
+.art svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.art path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+/* draw-on: every path is normalised with pathLength="1" */
+.js .art path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 1.5s var(--ease);
+}
+.js .in .art path, .js .art.in path { stroke-dashoffset: 0; }
+
+/* stagger the canopy strokes so the crown tangles itself into being */
+.js .canopy path { transition-duration: 1.7s; }
+.js .canopy path:nth-child(3n)   { transition-delay: 0.18s; }
+.js .canopy path:nth-child(3n+1) { transition-delay: 0.36s; }
+.js .roots path:nth-child(2n)    { transition-delay: 0.2s; }
+
+/* ---------------------------------------------------------------- reveal
+   Authored visible-first: the animation is the OVERRIDE, never the default.
+   With JS off, CSS unsupported, or reduced-motion on, everything is simply
+   there. We never drop interactive content below opacity 0.15. */
+.js [data-reveal] {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+.js [data-reveal].in { opacity: 1; transform: none; }
+.js [data-reveal][data-reveal='2'] { transition-delay: 0.1s; }
+.js [data-reveal][data-reveal='3'] { transition-delay: 0.2s; }
+.js [data-reveal][data-reveal='4'] { transition-delay: 0.3s; }
+
+/* ---------------------------------------------------------------- §1 semilla */
+.s-seed { min-height: 100svh; display: flex; align-items: center; padding-bottom: 190px; }
+.s-seed .wrap { text-align: left; }
+.seed-art { left: 0; right: 0; bottom: 0; height: 210px; }
+.seed-art .waves { position: absolute; left: -2%; right: -2%; bottom: 120px; height: 60px; width: 104%; }
+.seed-art .seedling { position: absolute; left: 50%; bottom: 84px; width: 120px; height: 110px; transform: translateX(-50%); }
+
+.hint {
+  position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%);
+  z-index: 3;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--canopy); font-weight: 500;
+  background: none; border: 0; cursor: pointer; font-family: var(--sans);
+  padding: 8px 14px; border-radius: 999px;
+}
+.hint:hover { color: var(--brand); }
+.hint__arrow { font-size: 19px; line-height: 1; animation: rise 2.1s var(--ease) infinite; }
+@keyframes rise {
+  0%, 100% { transform: translateY(3px); opacity: 0.55; }
+  50% { transform: translateY(-4px); opacity: 1; }
+}
+
+/* ---------------------------------------------------------------- §2 raíces */
+/* The text starts BELOW the root system — root strokes never run behind
+   running copy, they live in the space above it and in the side gutters. */
+.s-roots { padding-top: clamp(250px, 38vh, 420px); }
+.roots-art {
+  left: 50%; top: 10px;
+  width: min(880px, 96vw); height: clamp(190px, 28vh, 330px);
+  transform: translateX(-50%); opacity: 0.9;
+}
+
+/* ---------------------------------------------------------------- §3 tronco */
+.s-trunk { padding-top: calc(var(--sect-y) + 20px); }
+.trunk-art { left: 50%; top: 0; bottom: 0; width: 180px; height: auto; transform: translateX(-50%); }
+.trunk-art svg { height: 100%; }
+
+.svcs {
+  list-style: none; margin: 56px 0 0; padding: 0;
+  display: grid; grid-template-columns: 1fr 1fr; column-gap: 210px; row-gap: 30px;
+}
+.svc {
+  position: relative;
+  border: 1px solid var(--border); border-radius: 16px;
+  background: var(--white);
+  padding: 26px 26px 28px;
+  transition: box-shadow 0.25s, transform 0.25s, border-color 0.25s;
+}
+.svc:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(20, 32, 26, 0.08); border-color: #cbdcc5; }
+.svc__icon { width: 44px; height: 44px; margin-bottom: 16px; }
+.svc__icon path, .svc__icon circle { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.75; }
+.svc h3 { color: var(--ink); }
+.svc p { font-size: 16px; color: var(--ink-2); margin: 0; }
+.svc--solo { display: flex; flex-direction: column; justify-content: center; }
+
+/* branch stubs reaching from each card toward the trunk */
+.svc::after {
+  content: ''; position: absolute; top: 46px; height: 1.5px;
+  background: linear-gradient(90deg, var(--border), var(--leaf));
+  width: 105px;
+}
+.svc:nth-child(odd) { grid-column: 1; }
+.svc:nth-child(even) { grid-column: 2; margin-top: 64px; }
+.svc:nth-child(odd)::after { right: -105px; }
+.svc:nth-child(even)::after { left: -105px; background: linear-gradient(270deg, var(--border), var(--leaf)); }
+
+/* ---------------------------------------------------------------- §4 copa */
+.s-canopy { padding-top: clamp(120px, 22vh, 240px); overflow: hidden; }
+.canopy-art { left: 50%; top: -40px; width: min(880px, 118vw); height: 520px; transform: translateX(-50%); opacity: 0.95; }
+.s-canopy .wrap { padding-top: clamp(240px, 34vh, 380px); }
+.s-canopy .shade {
+  position: absolute; left: 50%; top: 300px; width: min(900px, 120vw); height: 340px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, rgba(55, 91, 41, 0.08), transparent 68%);
+  z-index: 1; pointer-events: none;
+}
+
+/* ---------------------------------------------------------------- §5 contacto */
+.s-contact { background: var(--mist); border-top: 1px solid var(--border); }
+.contact-grid { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 56px; align-items: start; }
+.contact address { font-style: normal; margin: 0 0 6px; }
+.contact .line { margin: 0 0 10px; }
+.contact a.mail { color: var(--brand); font-weight: 500; word-break: break-word; }
+.contact .site { color: var(--canopy); font-weight: 500; }
+.card-logo {
+  background: var(--white); border: 1px solid var(--border); border-radius: 20px;
+  padding: 34px; text-align: center;
+}
+.card-logo img { margin: 0 auto; width: min(240px, 60%); }
+
+/* ---------------------------------------------------------------- footer */
+.ftr {
+  background: var(--white); border-top: 1px solid var(--border);
+  /* The footer is the LAST child, so column-reverse puts it at the visual top
+     of the page — where the fixed header would otherwise cover it. The extra
+     top padding is that clearance, not decoration. */
+  padding: clamp(104px, 13vh, 140px) var(--pad) 34px;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px;
+  font-size: 14px; color: var(--ink-2);
+}
+.ftr a { color: var(--canopy); }
+.motion-toggle {
+  font-family: var(--sans); font-size: 13px; color: var(--ink-2);
+  background: none; border: 1px solid var(--border); border-radius: 999px;
+  padding: 10px 18px; cursor: pointer; min-height: 44px;
+}
+.motion-toggle:hover { border-color: var(--brand); color: var(--brand); }
+
+/* ---------------------------------------------------------------- rail
+   Orientation without inventing Spanish nav labels. Fills from the bottom
+   as the visitor climbs. Decorative and hidden from assistive tech. */
+.rail {
+  position: fixed; right: 22px; top: 50%; transform: translateY(-50%);
+  z-index: 40; width: 2px; height: 160px;
+  background: var(--border); border-radius: 2px;
+  display: flex; align-items: flex-end;
+}
+.rail__fill { width: 100%; height: 0%; background: var(--brand); border-radius: 2px; transition: height 0.15s linear; }
+@media (max-width: 1100px) { .rail { display: none; } }
+
+/* ================================================================ mobile */
+@media (max-width: 860px) {
+  .svcs { grid-template-columns: 1fr; column-gap: 0; row-gap: 18px; margin-left: 52px; margin-top: 44px; }
+  .svc:nth-child(odd), .svc:nth-child(even) { grid-column: 1; margin-top: 0; }
+  .svc::after,
+  .svc:nth-child(odd)::after,
+  .svc:nth-child(even)::after {
+    left: -52px; right: auto; width: 52px;
+    background: linear-gradient(270deg, var(--border), var(--leaf));
+  }
+  /* trunk moves to the left gutter — same SVG, different placement */
+  .trunk-art { left: 26px; transform: none; width: 60px; }
+  .contact-grid { grid-template-columns: 1fr; gap: 34px; }
+  .card-logo { padding: 26px; }
+  .s-canopy .wrap { padding-top: clamp(170px, 26vh, 240px); }
+  .canopy-art { width: 130vw; height: 380px; top: 0; }
+  .s-canopy .shade { top: 210px; height: 240px; }
+  .ftr { justify-content: center; text-align: center; }
+}
+
+@media (max-width: 420px) {
+  .svcs { margin-left: 40px; }
+  .svc::after, .svc:nth-child(odd)::after, .svc:nth-child(even)::after { left: -40px; width: 40px; }
+  .trunk-art { left: 14px; width: 48px; }
+  .btns .btn { width: 100%; }
+}
+
+/* ================================================================ motion off
+   Ships in the same commit as the animation, and shows the COMPLETE final
+   state — never a blank page. The .no-motion class is set by the footer
+   toggle for users who have never opened OS accessibility settings. */
+@media (prefers-reduced-motion: reduce) {
+  .js [data-reveal], .js [data-reveal].in { opacity: 1; transform: none; transition: none; }
+  .js .art path { stroke-dashoffset: 0; transition: none; }
+  .hint__arrow { animation: none; }
+  * { scroll-behavior: auto !important; }
+}
+.no-motion [data-reveal], .no-motion [data-reveal].in { opacity: 1 !important; transform: none !important; transition: none !important; }
+.no-motion .art path { stroke-dashoffset: 0 !important; transition: none !important; }
+.no-motion .hint__arrow { animation: none; }
+
+/* ================================================================ print */
+@media print {
+  body { overflow: visible; }
+  .scroll { height: auto; overflow: visible; display: block; }
+  .hdr, .rail, .hint, .art, .motion-toggle { display: none !important; }
+  .sect { padding: 24px 0; page-break-inside: avoid; }
+}
