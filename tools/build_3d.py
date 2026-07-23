@@ -36,9 +36,21 @@ h = h.replace(
     "<title>Árbol Trade &amp; Marketing — versión 3D</title>"
 )
 
-# --- the flat page's background tree is the no-WebGL fallback ---------------
-# Nothing to strip: 3d/overrides.css hides .tree-bg while WebGL is running and
-# shows it again when it is not, so the fallback costs no extra markup.
+# --- swap the inline flat SVGs for lightweight <img> fallbacks --------------
+# They only ever render when WebGL is unavailable, so there is no reason to
+# carry ~50 KB of duplicated path data in this file.
+FALLBACK = {
+    "seed-art": '<img src="../assets/tree/waves.svg" alt="" class="fb-waves">',
+    "roots-art": '<img src="../assets/tree/roots.svg" alt="" class="fb-roots">',
+    "trunk-art": '<img src="../assets/tree/trunk.svg" alt="" class="fb-trunk">',
+    "canopy-art": '<img src="../assets/tree/canopy.svg" alt="" class="fb-canopy">',
+}
+for cls, repl in FALLBACK.items():
+    h = re.sub(
+        r'(<div class="art [^"]*%s[^"]*"[^>]*>).*?(</div>)' % cls,
+        lambda m, r=repl: m.group(1) + r + m.group(2),
+        h, flags=re.S,
+    )
 
 # --- mark sections so the 3D CSS can target them ---------------------------
 h = h.replace('class="sect s-', 'class="sect s-3d s-')

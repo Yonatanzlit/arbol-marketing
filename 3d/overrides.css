@@ -44,10 +44,9 @@
 .s-3d .wrap { max-width: 560px; margin-left: 0; }
 .s-3d.s-contact .wrap { max-width: var(--wrap); }
 
-/* The flat page's background tree is hidden while the 3D scene runs, and
-   comes back automatically if WebGL is unavailable. */
-.tree-bg { display: none; }
-.no-webgl .tree-bg { display: block; }
+/* The flat SVG art is the no-WebGL fallback only. */
+.art { display: none; }
+.no-webgl .art { display: block; }
 
 .s-seed { padding-bottom: 150px; }
 .s-canopy .wrap { padding-top: 0; }
@@ -101,6 +100,8 @@
 /* --- no-WebGL fallback -----------------------------------------------------
    If WebGL is unavailable the flat SVG tree renders instead, so the page is
    never a blank white screen. */
+.no-webgl .art img { width: 100%; height: 100%; object-fit: contain; }
+.no-webgl .fb-waves { object-fit: fill; }
 .no-webgl .s-3d .wrap.narrow,
 .no-webgl .s-3d.s-contact .contact-grid > div:first-child {
   background: none; border: 0; box-shadow: none; backdrop-filter: none; padding: 0;

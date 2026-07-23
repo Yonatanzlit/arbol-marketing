@@ -193,47 +193,24 @@ p { margin: 0 0 20px; max-width: 68ch; }
 .btn--ghost:hover { background: var(--mist); transform: translateY(-2px); }
 .btns { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 32px; }
 
-/* ------------------------------------------------------- background tree
-   ONE complete tree, never cut. It is fixed to the viewport and sized to
-   always fit inside it, so no section boundary and no screen edge ever
-   clips it. As the visitor scrolls it drifts vertically (and breathes very
-   slightly) so it reads as moving behind the text.
-   --p is written by script.js: 0 at the seed, 1 at the canopy. */
-.tree-bg {
-  position: fixed;
-  left: 50%;
-  top: 50%;
-  z-index: 0;
-  pointer-events: none;
-  /* Sized so it ALWAYS fits, drift included, and is never cut:
-       vertical   — 80svh tall, ±8svh of drift  → 48svh from centre, under 50
-       horizontal — capped at 140vw of height   → 84vw wide, clears the edges
-     If you change the height or the drift, keep that arithmetic true. */
-  height: min(80svh, 140vw);
-  width: auto;
-  aspect-ratio: 900 / 1500;
-  opacity: 0.2;
-  transform:
-    translate(-50%, calc(-50% + (var(--p, 0) - 0.5) * -16svh))
-    scale(calc(1 + var(--p, 0) * 0.02));
-  transition: opacity 1.2s ease;
-}
-.tree-bg svg { width: 100%; height: 100%; display: block; overflow: visible; }
-.tree-bg path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+/* ---------------------------------------------------------------- tree art */
+.art { position: absolute; z-index: 1; pointer-events: none; }
+.art svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.art path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
 
-/* Draw-on: the whole tree writes itself once, on load, from roots to crown. */
-.js .tree-bg { opacity: 0; }
-.js .tree-bg path {
+/* draw-on: every path is normalised with pathLength="1" */
+.js .art path {
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
-  transition: stroke-dashoffset 2.6s var(--ease);
+  transition: stroke-dashoffset 1.5s var(--ease);
 }
-.js .tree-bg.drawn { opacity: 0.2; }
-.js .tree-bg.drawn path { stroke-dashoffset: 0; }
-.js .tree-bg.drawn .t-roots path  { transition-delay: 0s; }
-.js .tree-bg.drawn .t-waves path  { transition-delay: 0.35s; }
-.js .tree-bg.drawn .t-trunk path  { transition-delay: 0.5s; }
-.js .tree-bg.drawn .t-canopy path { transition-delay: 0.9s; }
+.js .in .art path, .js .art.in path { stroke-dashoffset: 0; }
+
+/* stagger the canopy strokes so the crown tangles itself into being */
+.js .canopy path { transition-duration: 1.7s; }
+.js .canopy path:nth-child(3n)   { transition-delay: 0.18s; }
+.js .canopy path:nth-child(3n+1) { transition-delay: 0.36s; }
+.js .roots path:nth-child(2n)    { transition-delay: 0.2s; }
 
 /* ---------------------------------------------------------------- reveal
    Authored visible-first: the animation is the OVERRIDE, never the default.
@@ -250,8 +227,11 @@ p { margin: 0 0 20px; max-width: 68ch; }
 .js [data-reveal][data-reveal='4'] { transition-delay: 0.3s; }
 
 /* ---------------------------------------------------------------- §1 semilla */
-.s-seed { min-height: 100svh; display: flex; align-items: center; padding-bottom: 150px; }
+.s-seed { min-height: 100svh; display: flex; align-items: center; padding-bottom: 190px; }
 .s-seed .wrap { text-align: left; }
+.seed-art { left: 0; right: 0; bottom: 0; height: 210px; }
+.seed-art .waves { position: absolute; left: -2%; right: -2%; bottom: 120px; height: 60px; width: 104%; }
+.seed-art .seedling { position: absolute; left: 50%; bottom: 84px; width: 120px; height: 110px; transform: translateX(-50%); }
 
 .hint {
   position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%);
@@ -270,10 +250,19 @@ p { margin: 0 0 20px; max-width: 68ch; }
 }
 
 /* ---------------------------------------------------------------- §2 raíces */
-.s-roots { padding-top: var(--sect-y); }
+/* The text starts BELOW the root system — root strokes never run behind
+   running copy, they live in the space above it and in the side gutters. */
+.s-roots { padding-top: clamp(250px, 38vh, 420px); }
+.roots-art {
+  left: 50%; top: 10px;
+  width: min(880px, 96vw); height: clamp(190px, 28vh, 330px);
+  transform: translateX(-50%); opacity: 0.9;
+}
 
 /* ---------------------------------------------------------------- §3 tronco */
-.s-trunk { padding-top: var(--sect-y); }
+.s-trunk { padding-top: calc(var(--sect-y) + 20px); }
+.trunk-art { left: 50%; top: 0; bottom: 0; width: 180px; height: auto; transform: translateX(-50%); }
+.trunk-art svg { height: 100%; }
 
 .svcs {
   list-style: none; margin: 56px 0 0; padding: 0;
@@ -293,13 +282,27 @@ p { margin: 0 0 20px; max-width: 68ch; }
 .svc p { font-size: 16px; color: var(--ink-2); margin: 0; }
 .svc--solo { display: flex; flex-direction: column; justify-content: center; }
 
-/* The trunk now drifts with the scroll, so cards no longer draw stubs
-   reaching toward it — they would fall out of alignment as it moves. */
+/* branch stubs reaching from each card toward the trunk */
+.svc::after {
+  content: ''; position: absolute; top: 46px; height: 1.5px;
+  background: linear-gradient(90deg, var(--border), var(--leaf));
+  width: 105px;
+}
 .svc:nth-child(odd) { grid-column: 1; }
 .svc:nth-child(even) { grid-column: 2; margin-top: 64px; }
+.svc:nth-child(odd)::after { right: -105px; }
+.svc:nth-child(even)::after { left: -105px; background: linear-gradient(270deg, var(--border), var(--leaf)); }
 
 /* ---------------------------------------------------------------- §4 copa */
-.s-canopy { padding-top: var(--sect-y); }
+.s-canopy { padding-top: clamp(120px, 22vh, 240px); overflow: hidden; }
+.canopy-art { left: 50%; top: -40px; width: min(880px, 118vw); height: 520px; transform: translateX(-50%); opacity: 0.95; }
+.s-canopy .wrap { padding-top: clamp(240px, 34vh, 380px); }
+.s-canopy .shade {
+  position: absolute; left: 50%; top: 300px; width: min(900px, 120vw); height: 340px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, rgba(55, 91, 41, 0.08), transparent 68%);
+  z-index: 1; pointer-events: none;
+}
 
 /* ---------------------------------------------------------------- §5 contacto */
 .s-contact { background: var(--mist); border-top: 1px solid var(--border); }
@@ -344,32 +347,31 @@ p { margin: 0 0 20px; max-width: 68ch; }
 .rail__fill { width: 100%; height: 0%; background: var(--brand); border-radius: 2px; transition: height 0.15s linear; }
 @media (max-width: 1100px) { .rail { display: none; } }
 
-/* ================================================================ mobile
-   Kept deliberately short. On a phone the 8 services are a 2-up grid, not a
-   single column — that alone roughly halves the longest section — and the
-   section padding is tighter so the whole page is a short scroll, not a
-   long slide. */
+/* ================================================================ mobile */
 @media (max-width: 860px) {
-  :root { --sect-y: clamp(48px, 8vh, 80px); }
-
-  .svcs { grid-template-columns: 1fr 1fr; column-gap: 14px; row-gap: 14px; margin-top: 32px; }
-  .svc:nth-child(odd), .svc:nth-child(even) { grid-column: auto; margin-top: 0; }
-  .svc { padding: 18px 16px 20px; }
-  .svc__icon { width: 38px; height: 38px; margin-bottom: 12px; }
-  .svc h3 { font-size: 17px; }
-  .svc p { font-size: 14px; line-height: 1.55; }
-
-  .contact-grid { grid-template-columns: 1fr; gap: 28px; }
-  .card-logo { padding: 24px; }
+  .svcs { grid-template-columns: 1fr; column-gap: 0; row-gap: 18px; margin-left: 52px; margin-top: 44px; }
+  .svc:nth-child(odd), .svc:nth-child(even) { grid-column: 1; margin-top: 0; }
+  .svc::after,
+  .svc:nth-child(odd)::after,
+  .svc:nth-child(even)::after {
+    left: -52px; right: auto; width: 52px;
+    background: linear-gradient(270deg, var(--border), var(--leaf));
+  }
+  /* trunk moves to the left gutter — same SVG, different placement */
+  .trunk-art { left: 26px; transform: none; width: 60px; }
+  .contact-grid { grid-template-columns: 1fr; gap: 34px; }
+  .card-logo { padding: 26px; }
+  .s-canopy .wrap { padding-top: clamp(170px, 26vh, 240px); }
+  .canopy-art { width: 130vw; height: 380px; top: 0; }
+  .s-canopy .shade { top: 210px; height: 240px; }
   .ftr { justify-content: center; text-align: center; }
 }
 
 @media (max-width: 420px) {
+  .svcs { margin-left: 40px; }
+  .svc::after, .svc:nth-child(odd)::after, .svc:nth-child(even)::after { left: -40px; width: 40px; }
+  .trunk-art { left: 14px; width: 48px; }
   .btns .btn { width: 100%; }
-}
-@media (max-width: 340px) {
-  /* Only the very smallest phones drop to one column — two get too tight. */
-  .svcs { grid-template-columns: 1fr; }
 }
 
 /* ================================================================ motion off
@@ -378,20 +380,18 @@ p { margin: 0 0 20px; max-width: 68ch; }
    toggle for users who have never opened OS accessibility settings. */
 @media (prefers-reduced-motion: reduce) {
   .js [data-reveal], .js [data-reveal].in { opacity: 1; transform: none; transition: none; }
-  .js .tree-bg { opacity: 0.2; transition: none; }
-  .js .tree-bg path { stroke-dashoffset: 0; transition: none; }
+  .js .art path { stroke-dashoffset: 0; transition: none; }
   .hint__arrow { animation: none; }
   * { scroll-behavior: auto !important; }
 }
 .no-motion [data-reveal], .no-motion [data-reveal].in { opacity: 1 !important; transform: none !important; transition: none !important; }
-.no-motion .tree-bg { opacity: 0.2 !important; transition: none !important; }
-.no-motion .tree-bg path { stroke-dashoffset: 0 !important; transition: none !important; }
+.no-motion .art path { stroke-dashoffset: 0 !important; transition: none !important; }
 .no-motion .hint__arrow { animation: none; }
 
 /* ================================================================ print */
 @media print {
   body { overflow: visible; }
   .scroll { height: auto; overflow: visible; display: block; }
-  .hdr, .rail, .hint, .tree-bg, .motion-toggle { display: none !important; }
+  .hdr, .rail, .hint, .art, .motion-toggle { display: none !important; }
   .sect { padding: 24px 0; page-break-inside: avoid; }
 }
