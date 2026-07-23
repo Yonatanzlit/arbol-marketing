@@ -344,17 +344,32 @@ p { margin: 0 0 20px; max-width: 68ch; }
 .rail__fill { width: 100%; height: 0%; background: var(--brand); border-radius: 2px; transition: height 0.15s linear; }
 @media (max-width: 1100px) { .rail { display: none; } }
 
-/* ================================================================ mobile */
+/* ================================================================ mobile
+   Kept deliberately short. On a phone the 8 services are a 2-up grid, not a
+   single column — that alone roughly halves the longest section — and the
+   section padding is tighter so the whole page is a short scroll, not a
+   long slide. */
 @media (max-width: 860px) {
-  .svcs { grid-template-columns: 1fr; column-gap: 0; row-gap: 18px; margin-top: 44px; }
-  .svc:nth-child(odd), .svc:nth-child(even) { grid-column: 1; margin-top: 0; }
-  .contact-grid { grid-template-columns: 1fr; gap: 34px; }
-  .card-logo { padding: 26px; }
-    .ftr { justify-content: center; text-align: center; }
+  :root { --sect-y: clamp(48px, 8vh, 80px); }
+
+  .svcs { grid-template-columns: 1fr 1fr; column-gap: 14px; row-gap: 14px; margin-top: 32px; }
+  .svc:nth-child(odd), .svc:nth-child(even) { grid-column: auto; margin-top: 0; }
+  .svc { padding: 18px 16px 20px; }
+  .svc__icon { width: 38px; height: 38px; margin-bottom: 12px; }
+  .svc h3 { font-size: 17px; }
+  .svc p { font-size: 14px; line-height: 1.55; }
+
+  .contact-grid { grid-template-columns: 1fr; gap: 28px; }
+  .card-logo { padding: 24px; }
+  .ftr { justify-content: center; text-align: center; }
 }
 
 @media (max-width: 420px) {
   .btns .btn { width: 100%; }
+}
+@media (max-width: 340px) {
+  /* Only the very smallest phones drop to one column — two get too tight. */
+  .svcs { grid-template-columns: 1fr; }
 }
 
 /* ================================================================ motion off
